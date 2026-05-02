@@ -82,10 +82,12 @@ def main():
         if count >= max_batch: break
         
         # Check if product is ready to be pinned
-        if row.get("Status") == "Pending" and row.get("Page_URL"):
-            url = row["URL"]
-            page_url = row["Page_URL"]
-            
+        status = row.get("Status", "Pending")
+        page_url = row.get("Page_URL")
+        category = row.get("Category", "Gadgets")
+        url = row.get("URL")
+        
+        if status == "Pending" and page_url:
             print(f"Processing: {url}")
             
             try:
@@ -93,26 +95,22 @@ def main():
                 data = {}
                 try:
                     data = scrape_with_requests(url)
-                except:
+                except Exception as e:
+                    print(f"  Requests scrape failed, trying Playwright: {e}")
                     data = scrape_with_playwright(url)
                 
                 if not data.get("product_name"):
-                    print(f"Skipping {url}: Scraping failed.")
+                    print(f"  Skipping: Scraping failed for {url}")
                     continue
                 
                 title = data["product_name"]
                 img_url = data["image_url"]
                 
-                # 2. Generate Image (Local only for validation, we link original URL to Pinterest)
-                # In Tier 1 automation, we use the original image URL for the pin 
-                # because Pinterest needs a public URL, and our generated one 
-                # isn't public until we push it to a host.
-                
                 # 3. Post to Pinterest
                 pin_id = upload_pin_to_pinterest(
                     image_path=img_url, 
-                    title=f"Best {row['Category']}: {title[:50]}",
-                    description=f"Check out this essential {row['Category']} for engineering students! Found on Hostel Engineer Picks.",
+                    title=f"Best {category}: {title[:50]}",
+                    description=f"Check out this essential {category} for engineering students! Found on Hostel Engineer Picks.",
                     link=page_url
                 )
                 

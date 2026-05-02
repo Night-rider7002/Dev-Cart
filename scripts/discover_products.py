@@ -96,7 +96,7 @@ def scrape_bestsellers(category_url: str) -> list[dict]:
 
 # ── Categorize with Gemini ────────────────────────────────────────────
 def categorize_product(product_name: str) -> str:
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_KEY}"
+    url = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={GEMINI_KEY}"
     payload = {
         "contents": [{"parts": [{"text": (
             f"Product: {product_name}\n"

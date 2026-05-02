@@ -35,7 +35,7 @@ def generate_page_html(category: str, products: list[dict]) -> str:
         for p in products[:10]
     ])
 
-    gemini_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_KEY}"
+    gemini_url = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={GEMINI_KEY}"
     prompt = f"""
 You are writing SEO content for an affiliate landing page targeting engineering students in Indian hostels.
 Category: {category}

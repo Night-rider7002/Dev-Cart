@@ -34,7 +34,7 @@ jobs:
         env:
           SHEET_ID: ${{ secrets.SHEET_ID }}
           GEMINI_KEY: ${{ secrets.GEMINI_KEY }}
-          PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
+          PAT_TOKEN: ${{ secrets.PAT_TOKEN || secrets.GITHUB_PAT }}
           GITHUB_REPO: ${{ github.repository }}
           AMAZON_ASSOCIATE_TAG: ${{ secrets.AMAZON_ASSOCIATE_TAG }}
           GCP_CREDS_JSON: ${{ secrets.GCP_CREDS_JSON }}

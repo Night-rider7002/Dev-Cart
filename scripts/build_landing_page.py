@@ -13,7 +13,10 @@ import gspread
 
 SHEET_ID       = os.environ["SHEET_ID"]
 GEMINI_KEY     = os.environ["GEMINI_KEY"]
-GITHUB_TOKEN   = os.environ["PAT_TOKEN"]
+GITHUB_TOKEN   = os.environ.get("PAT_TOKEN")
+if not GITHUB_TOKEN:
+    raise ValueError("Error: PAT_TOKEN environment variable is missing. Please ensure you have added it to GitHub Secrets.")
+
 GITHUB_REPO    = os.environ["GITHUB_REPO"]  # format: "username/reponame"
 ASSOCIATE_TAG  = os.environ["AMAZON_ASSOCIATE_TAG"]
 GCP_CREDS_JSON = os.environ["GCP_CREDS_JSON"]

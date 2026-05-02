@@ -31,7 +31,7 @@ def get_sheet():
 def generate_page_html(category: str, products: list[dict]) -> str:
     """Call Gemini to write the page copy, then inject into HTML template."""
     product_list = "\n".join([
-        f"- {p.get('product_name', p['url'])} (₹{p.get('price', 'Check Price')})"
+        f"- {p.get('Product_Name', p.get('URL', 'Unknown Product'))} (₹{p.get('Price', 'Check Price')})"
         for p in products[:10]
     ])
 
@@ -62,20 +62,22 @@ Return ONLY a JSON object with these fields:
     product_cards = ""
     intros = copy.get("product_intros", [""] * len(products))
     for i, p in enumerate(products[:10]):
-        asin = p['url'].split("/dp/")[1].split("/")[0] if "/dp/" in p['url'] else ""
+        url = p.get('URL', '')
+        asin = url.split("/dp/")[1].split("/")[0] if "/dp/" in url else ""
         intro = intros[i] if i < len(intros) else ""
         product_cards += f"""
         <div class="product-card">
-            <img src="{p.get('image_url', '')}" alt="{p.get('product_name', 'Product')}">
+            <img src="{p.get('Image_URL', '')}" alt="{p.get('Product_Name', 'Product')}">
             <div class="card-body">
-                <h3>{p.get('product_name', 'Product')}</h3>
+                <h3>{p.get('Product_Name', 'Product')}</h3>
                 <p class="intro">{intro}</p>
-                <p class="price">₹{p.get('price', 'Check Price')}</p>
-                <a href="{p['affiliate_link']}" class="cta-btn" target="_blank" rel="nofollow sponsored">
+                <p class="price">₹{p.get('Price', 'Check Price')}</p>
+                <a href="{p.get('Affiliate_Link', url)}" class="cta-btn" target="_blank" rel="nofollow sponsored">
                     Check Price on Amazon →
                 </a>
             </div>
         </div>"""
+
 
     # Full page HTML
     html = f"""<!DOCTYPE html>

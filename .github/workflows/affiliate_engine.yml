@@ -1,0 +1,49 @@
+name: Affiliate Engine Automation
+
+on:
+  schedule:
+    - cron: '0 4,10,16,22 * * *'  # Runs 4 times a day
+  workflow_dispatch:              # Allows manual triggering
+
+jobs:
+  run-pipeline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          
+      - name: Install Dependencies
+        run: |
+          pip install requests beautifulsoup4 lxml pillow gspread google-auth playwright
+          playwright install chromium --with-deps
+          
+      - name: Discover Products (Seed Sheet)
+        run: python scripts/discover_products.py
+        env:
+          SHEET_ID: ${{ secrets.SHEET_ID }}
+          AMAZON_ASSOCIATE_TAG: ${{ secrets.AMAZON_ASSOCIATE_TAG }}
+          GEMINI_KEY: ${{ secrets.GEMINI_KEY }}
+          GCP_CREDS_JSON: ${{ secrets.GCP_CREDS_JSON }}
+
+      - name: Build Landing Pages
+        run: python scripts/build_landing_page.py
+        env:
+          SHEET_ID: ${{ secrets.SHEET_ID }}
+          GEMINI_KEY: ${{ secrets.GEMINI_KEY }}
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+          GITHUB_REPO: ${{ github.repository }}
+          AMAZON_ASSOCIATE_TAG: ${{ secrets.AMAZON_ASSOCIATE_TAG }}
+          GCP_CREDS_JSON: ${{ secrets.GCP_CREDS_JSON }}
+
+      - name: Post Pins
+        run: python scripts/post_pin.py
+        env:
+          SHEET_ID: ${{ secrets.SHEET_ID }}
+          PINTEREST_TOKEN: ${{ secrets.PINTEREST_TOKEN }}
+          PINTEREST_BOARD_ID: ${{ secrets.PINTEREST_BOARD_ID }}
+          GEMINI_KEY: ${{ secrets.GEMINI_KEY }}
+          GCP_CREDS_JSON: ${{ secrets.GCP_CREDS_JSON }}

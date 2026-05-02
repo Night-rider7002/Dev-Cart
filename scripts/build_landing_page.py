@@ -50,6 +50,7 @@ Return ONLY a JSON object with these fields:
   "product_intros": ["one sentence intro for each product in same order as input list"]
 }}
 """
+    print(f"Generating page via Gemini for {category}...")
     resp = requests.post(gemini_url, json={
         "contents": [{"parts": [{"text": prompt}]}]
     }, timeout=15)
@@ -98,17 +99,16 @@ Return ONLY a JSON object with these fields:
             </div>
         </div>"""
 
-
     # Full page HTML
     html = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{copy['page_title']}</title>
-    <meta name="description" content="{copy['meta_description']}">
-    <meta property="og:title" content="{copy['page_title']}">
-    <meta property="og:description" content="{copy['meta_description']}">
+    <title>{copy.get('page_title', 'Best Products')}</title>
+    <meta name="description" content="{copy.get('meta_description', '')}">
+    <meta property="og:title" content="{copy.get('page_title', 'Best Products')}">
+    <meta property="og:description" content="{copy.get('meta_description', '')}">
     <link rel="canonical" href="https://{GITHUB_REPO.split('/')[0]}.github.io/{GITHUB_REPO.split('/')[1]}/pages/{category.lower().replace(" ", "-").replace("/", "-")}.html">
     <style>
         * {{ box-sizing: border-box; margin: 0; padding: 0; }}
@@ -132,8 +132,8 @@ Return ONLY a JSON object with these fields:
 </head>
 <body>
     <header>
-        <h1>{copy['hero_heading']}</h1>
-        <p>{copy['hero_subtext']}</p>
+        <h1>{copy.get('hero_heading', category)}</h1>
+        <p>{copy.get('hero_subtext', '')}</p>
     </header>
     <div class="disclosure">
         ⚠️ <strong>Affiliate Disclosure:</strong> This page contains affiliate links. 
@@ -143,7 +143,7 @@ Return ONLY a JSON object with these fields:
         {product_cards}
     </div>
     <footer>
-        <p>© 2025 Hostel Engineer Picks | Amazon affiliate links disclosed above</p>
+        <p>© 2026 Hostel Engineer Picks | Amazon affiliate links disclosed above</p>
     </footer>
 </body>
 </html>"""
@@ -187,14 +187,17 @@ def main():
 
     for category, products in categories.items():
         print(f"Building page for: {category} ({len(products)} products)")
-        html = generate_page_html(category, products)
-        filename = category.lower().replace(" ", "-").replace("/", "-") + ".html"
-        page_url = push_to_github(filename, html)
-        print(f"Published: {page_url}")
+        try:
+            html = generate_page_html(category, products)
+            filename = category.lower().replace(" ", "-").replace("/", "-") + ".html"
+            page_url = push_to_github(filename, html)
+            print(f"Published: {page_url}")
 
-        # Write Page_URL back to sheet for each product in this category
-        for p in products:
-            sheet.update_cell(p["row_index"], 7, page_url)  # Column G = Page_URL
+            # Write Page_URL back to sheet for each product in this category
+            for p in products:
+                sheet.update_cell(p["row_index"], 7, page_url)  # Column G = Page_URL
+        except Exception as e:
+            print(f"Failed to build page for {category}: {e}")
 
         time.sleep(2)  # avoid Gemini rate limit
 

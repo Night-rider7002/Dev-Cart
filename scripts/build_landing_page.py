@@ -54,9 +54,29 @@ Return ONLY a JSON object with these fields:
         "contents": [{"parts": [{"text": prompt}]}]
     }, timeout=15)
 
-    raw = resp.json()["candidates"][0]["content"]["parts"][0]["text"]
-    raw = raw.replace("```json", "").replace("```", "").strip()
-    copy = json.loads(raw)
+    try:
+        res_json = resp.json()
+        if "candidates" not in res_json:
+            print(f"Gemini API Error: {json.dumps(res_json)}")
+            raise ValueError("No candidates in Gemini response")
+            
+        raw = res_json["candidates"][0]["content"]["parts"][0]["text"]
+        # Robust JSON extraction
+        if "```json" in raw:
+            raw = raw.split("```json")[1].split("```")[0]
+        elif "```" in raw:
+            raw = raw.split("```")[1].split("```")[0]
+        
+        copy = json.loads(raw.strip())
+    except Exception as e:
+        print(f"⚠️ Warning: Gemini generation failed ({e}). Using fallback content.")
+        copy = {
+            "page_title": f"Best {category} for Hostel Students",
+            "meta_description": f"Top rated {category} products for engineering students in India.",
+            "hero_heading": f"Essential {category}",
+            "hero_subtext": "Curated picks for your hostel room and study setup.",
+            "product_intros": [p.get('Product_Name', 'Product') for p in products]
+        }
 
     # Build product cards HTML
     product_cards = ""

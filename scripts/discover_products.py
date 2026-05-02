@@ -106,8 +106,17 @@ def categorize_product(product_name: str) -> str:
             "Return just the category name, nothing else."
         )}]}]
     }
-    resp = requests.post(url, json=payload, timeout=10)
-    return resp.json()["candidates"][0]["content"]["parts"][0]["text"].strip()
+    try:
+        resp = requests.post(url, json=payload, timeout=10)
+        res_json = resp.json()
+        if "candidates" in res_json:
+            return res_json["candidates"][0]["content"]["parts"][0]["text"].strip()
+        else:
+            print(f"Gemini Categorization Error: {json.dumps(res_json)}")
+            return "General"
+    except Exception as e:
+        print(f"Categorization failed for {product_name}: {e}")
+        return "General"
 
 # ── Main ──────────────────────────────────────────────────────────────
 def main():
